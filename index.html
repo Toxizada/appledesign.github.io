@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TH Store | Tecnologia premium. Experiência exclusiva.</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --text-color: #1d1d1f;
+            --accent-orange: #ff7e33;
+            --glass-bg: rgba(255, 255, 255, 0.72);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .glass-nav {
+            background: var(--glass-bg);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            z-index: 1000;
+        }
+
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(circle at center, black, transparent 80%);
+            z-index: 0;
+        }
+
+        .btn-primary {
+            background: var(--text-color);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 980px;
+            font-weight: 500;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            background: #000;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .product-card {
+            background: #fff;
+            border-radius: 28px;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.08);
+        }
+
+        #iphone-canvas-container {
+            width: 100%;
+            height: 600px;
+            cursor: grab;
+            touch-action: none;
+            position: relative;
+        }
+
+        #iphone-canvas-container:active {
+            cursor: grabbing;
+        }
+
+        .section-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .model-loader-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            z-index: 5;
+            transition: opacity 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Nav -->
+    <nav class="glass-nav fixed top-0 w-full py-4 px-6 md:px-12 flex justify-between items-center">
+        <div class="flex items-center gap-12">
+            <a href="#" class="text-2xl font-semibold tracking-tight">TH Store</a>
+            <div class="hidden lg:flex gap-8 text-[13px] font-medium opacity-80">
+                <a href="#iphones" class="hover:opacity-100 transition-opacity">iPhone</a>
+                <a href="#macs" class="hover:opacity-100 transition-opacity">Mac</a>
+                <a href="#ipad" class="hover:opacity-100 transition-opacity">iPad</a>
+                <a href="#watch" class="hover:opacity-100 transition-opacity">Watch</a>
+                <a href="#acessorios" class="hover:opacity-100 transition-opacity">Acessórios</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <button class="opacity-70 hover:opacity-100 transition-opacity"><i data-lucide="search" class="w-5 h-5"></i></button>
+            <div class="relative cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span class="absolute -top-1.5 -right-1.5 bg-[#0071e3] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="relative min-h-screen flex flex-col items-center justify-center pt-24 overflow-hidden bg-white">
+        <div class="hero-grid" id="grid-parallax"></div>
+        <div class="text-center z-10 px-6 max-w-4xl" id="hero-text">
+            <span class="text-xs font-bold tracking-[0.3em] uppercase opacity-40 mb-6 block">Lançamento</span>
+            <h1 class="text-6xl md:text-8xl font-semibold tracking-tighter mb-8 leading-[1.1]">
+                iPhone 17 <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-orange-700">Titanium Orange</span>
+            </h1>
+            <p class="text-xl md:text-2xl font-light opacity-60 mb-10 max-w-2xl mx-auto">
+                O metal mais resistente do planeta. Agora em uma cor que não pode ser ignorada.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <a href="#iphones" class="btn-primary">Comprar agora</a>
+                <a href="#" class="text-blue-600 font-medium flex items-center gap-2 group hover:underline">
+                    Ver o filme <i data-lucide="play-circle" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3D Showcase -->
+    <section class="py-24 bg-[#f5f5f7] overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="w-full lg:w-1/2 order-2 lg:order-1 section-reveal" id="three-trigger">
+                    <div id="iphone-canvas-container" class="rounded-[48px] bg-white shadow-2xl border border-white overflow-hidden">
+                        <div id="model-loader" class="model-loader-overlay">
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                                <span class="text-[10px] uppercase tracking-widest font-bold opacity-40">Carregando Modelo 3D</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-1/2 order-1 lg:order-2 space-y-8 section-reveal">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-orange-700 font-semibold text-xs uppercase tracking-widest">
+                        Interativo 360°
+                    </div>
+                    <h2 class="text-5xl md:text-6xl font-semibold tracking-tight leading-tight">Titânio Aeroespacial.</h2>
+                    <p class="text-lg opacity-60 leading-relaxed">
+                        Explore cada detalhe do design em 3D. O novo acabamento metálico reflete a luz de forma única, garantindo durabilidade extrema e movimentos suaves.
+                    </p>
+                    <div class="flex items-center gap-3 text-sm opacity-40 font-medium italic">
+                        <i data-lucide="mouse-pointer-2" class="w-4 h-4"></i> Arraste para rotacionar o aparelho
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Store Section -->
+    <section id="iphones" class="py-32 px-6 md:px-12 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+                <div class="section-reveal">
+                    <h2 class="text-4xl md:text-5xl font-semibold tracking-tight mb-4">Loja TH Store.</h2>
+                    <p class="text-xl opacity-50">Produtos Apple originais com garantia premium.</p>
+                </div>
+                <div class="flex gap-4 section-reveal">
+                    <div class="px-6 py-2 rounded-full border border-gray-200 bg-gray-50 text-sm font-medium">Todos</div>
+                    <div class="px-6 py-2 rounded-full border border-gray-100 text-sm font-medium opacity-50 hover:opacity-100 cursor-pointer">iPhone</div>
+                </div>
+            </div>
+
+            <!-- Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <!-- Card 1 -->
+                <div class="product-card p-10 flex flex-col section-reveal">
+                    <div class="h-64 flex items-center justify-center mb-10 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&q=80&w=400" alt="iPhone 17 Pro" class="h-full object-contain hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <div class="mt-auto space-y-3">
+                        <h3 class="text-2xl font-semibold">iPhone 17 Pro</h3>
+                        <p class="text-sm opacity-50">Titânio Laranja, Titânio Natural</p>
+                        <div class="flex justify-between items-center pt-6">
+                            <span class="text-lg font-medium">R$ 9.499</span>
+                            <button class="bg-gray-100 hover:bg-black hover:text-white px-6 py-2 rounded-full text-sm font-bold transition-all">Comprar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="product-card p-10 flex flex-col section-reveal">
+                    <div class="h-64 flex items-center justify-center mb-10">
+                        <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&q=80&w=400" alt="MacBook Pro" class="h-full object-contain hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <div class="mt-auto space-y-3">
+                        <h3 class="text-2xl font-semibold">MacBook Pro M4</h3>
+                        <p class="text-sm opacity-50">14" - Preto Espacial</p>
+                        <div class="flex justify-between items-center pt-6">
+                            <span class="text-lg font-medium">R$ 16.999</span>
+                            <button class="bg-gray-100 hover:bg-black hover:text-white px-6 py-2 rounded-full text-sm font-bold transition-all">Comprar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="product-card p-10 flex flex-col section-reveal">
+                    <div class="h-64 flex items-center justify-center mb-10">
+                        <img src="https://images.unsplash.com/photo-1434493907317-a46b53b81846?auto=format&fit=crop&q=80&w=400" alt="Watch Ultra" class="h-full object-contain hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <div class="mt-auto space-y-3">
+                        <h3 class="text-2xl font-semibold">Apple Watch Ultra 2</h3>
+                        <p class="text-sm opacity-50">Titânio Negro</p>
+                        <div class="flex justify-between items-center pt-6">
+                            <span class="text-lg font-medium">R$ 7.299</span>
+                            <button class="bg-gray-100 hover:bg-black hover:text-white px-6 py-2 rounded-full text-sm font-bold transition-all">Comprar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#f5f5f7] py-24 px-6 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+                <div class="col-span-1 md:col-span-1">
+                    <h3 class="text-xl font-bold mb-6">TH Store</h3>
+                    <p class="text-sm opacity-50 leading-relaxed">Revendedor autorizado premium com as melhores condições e garantia oficial no Brasil.</p>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-widest mb-6 opacity-40">Categorias</h4>
+                    <ul class="space-y-4 text-sm font-medium">
+                        <li><a href="#" class="hover:underline">iPhone</a></li>
+                        <li><a href="#" class="hover:underline">MacBook</a></li>
+                        <li><a href="#" class="hover:underline">iPad</a></li>
+                        <li><a href="#" class="hover:underline">Watch</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-widest mb-6 opacity-40">Suporte</h4>
+                    <ul class="space-y-4 text-sm font-medium">
+                        <li><a href="#" class="hover:underline">Garantia</a></li>
+                        <li><a href="#" class="hover:underline">Troca</a></li>
+                        <li><a href="#" class="hover:underline">Assistência</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-widest mb-6 opacity-40">Siga-nos</h4>
+                    <div class="flex gap-4">
+                        <a href="https://www.instagram.com/_thstore_of/" target="_blank" rel="noopener noreferrer">
+                            <i data-lucide="instagram" class="w-5 h-5 opacity-50 cursor-pointer hover:opacity-100 transition-opacity"></i>
+                        </a>
+                        <i data-lucide="facebook" class="w-5 h-5 opacity-50 cursor-pointer hover:opacity-100 transition-opacity"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-10 border-t border-gray-300 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-[11px] opacity-40">© 2024 TH Store Brasil. Todos os direitos reservados.</p>
+                <div class="flex gap-6 text-[11px] opacity-40 font-medium">
+                    <a href="#">Privacidade</a>
+                    <a href="#">Termos</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // Lenis Smooth Scroll
+        const lenis = new Lenis();
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // GSAP
+        gsap.registerPlugin(ScrollTrigger);
+
+        // 3D Scene Setup
+        const container = document.getElementById('iphone-canvas-container');
+        const loaderUI = document.getElementById('model-loader');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(40, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+        camera.position.set(0, 0, 12);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.offsetWidth, container.offsetHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        // OrbitControls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.enableZoom = false;
+        controls.autoRotate = false;
+        controls.enablePan = false;
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        mainLight.position.set(5, 10, 7);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+
+        const orangeRimLight = new THREE.PointLight(0xff7e33, 2);
+        orangeRimLight.position.set(-5, -2, 5);
+        scene.add(orangeRimLight);
+
+        // Model Loader
+        const loader = new THREE.GLTFLoader();
+        let phone;
+
+        const modelUrl = 'https://cdn.jsdelivr.net/gh/Toxizada/iphone17promaxmetalic3d@main/iphone_17_pro_max.glb';
+
+        loader.load(
+            modelUrl,
+            (gltf) => {
+                phone = gltf.scene;
+                const box = new THREE.Box3().setFromObject(phone);
+                const center = box.getCenter(new THREE.Vector3());
+                phone.position.sub(center);
+                phone.scale.set(4.5, 4.5, 4.5);
+                
+                phone.traverse((node) => {
+                    if (node.isMesh) {
+                        node.castShadow = true;
+                        node.receiveShadow = true;
+                    }
+                });
+
+                scene.add(phone);
+                gsap.to(loaderUI, { opacity: 0, duration: 0.8, onComplete: () => loaderUI.style.display = 'none' });
+            },
+            undefined,
+            (err) => {
+                console.error(err);
+                loaderUI.innerHTML = "<p class='text-red-500 text-xs font-bold'>Erro no 3D</p>";
+            }
+        );
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); 
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.offsetWidth / container.offsetHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.offsetWidth, container.offsetHeight);
+        });
+
+        // Animations on Reveal
+        gsap.utils.toArray('.section-reveal').forEach(el => {
+            gsap.to(el, {
+                scrollTrigger: {
+                    trigger: el,
+                    start: "top 85%"
+                },
+                opacity: 1,
+                y: 0,
+                duration: 1.2,
+                ease: "power3.out"
+            });
+        });
+
+        // Mouse Parallax for Grid
+        window.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+            gsap.to("#grid-parallax", { x, y, duration: 2 });
+        });
+    </script>
+</body>
+</html>
